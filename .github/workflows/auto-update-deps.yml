@@ -1,0 +1,43 @@
+name: Auto Update
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+jobs:
+  update_versions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get new Tailscale version and update Dockerfile
+        run: |
+          current_version=$(grep -oP '(?<=^ARG TSVERSION=)[^\s]*' Dockerfile)
+          latest_version=$(curl -s https://pkgs.tailscale.com/stable/ | grep tailscale_ -m 1 | cut -d'_' -f 2 | cut -d'.' -f1-3)
+          if [ "$current_version" != "$latest_version" ]; then
+            sed -i "/^ARG TSVERSION=.*/d" Dockerfile
+            sed -i "1i ARG TSVERSION=$latest_version" Dockerfile
+          fi
+
+      - name: Get new Overmind version and update Dockerfile
+        run: |
+          current_version=$(grep -oP '(?<=^ARG OM_VERSION=)[^\s]*' Dockerfile)
+          latest_version=$(curl -s https://github.com/DarthSim/overmind/releases | grep -oP 'v[0-9]+\.[0-9]+\.[0-9]+' | head -1 | sed 's/v//')
+          if [ "$current_version" != "$latest_version" ]; then
+            sed -i "/^ARG OM_VERSION=.*/d" Dockerfile
+            sed -i "1i ARG OM_VERSION=$latest_version" Dockerfile
+          fi
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name "GitHub Action: auto update versions"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add Dockerfile
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "auto update versions"
+            git push
+          fi

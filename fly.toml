@@ -1,0 +1,23 @@
+# fly.toml app configuration file generated for tailguard on 2024-07-24T09:56:47+07:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'tailguard'
+primary_region = 'sin'
+
+[build]
+  dockerfile = 'Dockerfile'
+
+[env]
+  OVERMIND_CAN_DIE = 'supercronic'
+  TZ = 'Asia/Jakarta'
+
+[[mounts]]
+  source = 'adguardata'
+  destination = '/data'
+
+[[vm]]
+  memory = '2gb'
+  cpu_kind = 'shared'
+  cpus = 1

@@ -1,0 +1,9 @@
+.idea/
+.github/
+.git/
+.gitignore
+.env
+.env.example
+fly.toml
+Dockerfile
+README.md
